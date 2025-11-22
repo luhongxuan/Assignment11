@@ -5,9 +5,21 @@ from flask import Flask, session, jsonify, request
 from flask_cors import CORS
 from featuretoggles import TogglesList
 
+SEAT_MAP = [
+    {"id": "A1", "row": "A", "col": 1, "type": "front", "status": 0},
+    {"id": "A2", "row": "A", "col": 2, "type": "front", "status": 0},
+    {"id": "A3", "row": "A", "col": 3, "type": "center", "status": 0}, # 視野最好
+    {"id": "A4", "row": "A", "col": 4, "type": "front", "status": 0},
+    {"id": "A5", "row": "A", "col": 5, "type": "aisle", "status": 1}, # 假裝有人買了
+    {"id": "B1", "row": "B", "col": 1, "type": "back",  "status": 0},
+    {"id": "B2", "row": "B", "col": 2, "type": "back",  "status": 0},
+    {"id": "B3", "row": "B", "col": 3, "type": "center", "status": 0},
+]
+
 # --- Toggle 初始化 ---
 class CinemaToggles(TogglesList):
     guest_checkout: bool
+    auto_seating: bool
 
 try:
     toggles = CinemaToggles('toggles.yaml')
@@ -75,6 +87,71 @@ def login():
         return jsonify({"success": True, "target": "booking_std.html"})
     return jsonify({"success": False, "message": "帳號密碼錯誤"}), 401
 
+@app.route('/api/seat-config', methods=['GET'])
+def get_seat_config():
+    """
+    前端載入頁面時呼叫此 API，詢問：「我該顯示地圖還是偏好選項？」
+    """
+    mode = "auto" if toggles.auto_seating else "manual"
+    
+    response = {
+        "mode": mode,
+        "seats": [],      # 手動模式才需要回傳地圖
+        "preferences": [] # 自動模式才需要回傳選項
+    }
+
+    if mode == "manual":
+        # 回傳目前所有座位狀態
+        response["seats"] = SEAT_MAP
+    else:
+        # 回傳可用的偏好選項
+        response["preferences"] = [
+            {"key": "center", "label": "👑 視野最佳 (中間區域)"},
+            {"key": "aisle",  "label": "🏃 進出方便 (靠走道)"},
+            {"key": "back",   "label": "🕶️ 隱密性高 (後排)"},
+            {"key": "front",  "label": "🔥 臨場感強 (前排)"}
+        ]
+        
+    logging.info(f"Seat Config Requested. Mode: {mode}")
+    return jsonify(response)
+
+def allocate_seats(pref, count):
+    """
+    [演算法] 根據偏好自動找空位
+    """
+    count = int(count)
+    available = [s for s in SEAT_MAP if s['status'] == 0]
+    
+    # 簡單的優先順序邏輯
+    if pref == 'center':
+        # 找 Col=3 的位子
+        candidates = [s for s in available if s['col'] == 3]
+    elif pref == 'aisle':
+        # 找 Col=1 或 5
+        candidates = [s for s in available if s['col'] in [1, 5]]
+    elif pref == 'back':
+        # 找 Row=B
+        candidates = [s for s in available if s['row'] == 'B']
+    else:
+        # 預設從前面開始
+        candidates = available
+        
+    # 如果位子不夠，就隨便塞
+    if len(candidates) < count:
+        candidates = available
+        
+    if len(candidates) < count:
+        return None # 沒位子了
+        
+    # 選出前 N 個位子，並將狀態改為已售出 (模擬)
+    selected = candidates[:count]
+    ids = []
+    for s in selected:
+        s['status'] = 1 # 鎖定座位
+        ids.append(s['id'])
+        
+    return ids
+
 @app.route('/api/book', methods=['POST'])
 def book_ticket():
     """
@@ -99,20 +176,37 @@ def book_ticket():
     else:
         return jsonify({"error": "Unauthorized"}), 401
 
+    assigned_seats = []
+    
+    if toggles.auto_seating:
+        # 模式 A: 自動配位 (前端傳來的是 preference)
+        pref = data.get('preference')
+        count = data.get('count', 1)
+        assigned_seats = allocate_seats(pref, count)
+        if not assigned_seats:
+            return jsonify({"success": False, "error": "所選區域已無空位"}), 400
+        logging.info(f"Auto-Allocated Seats: {assigned_seats}")
+    else:
+        # 模式 B: 手動選位 (前端傳來的是 seat_ids)
+        assigned_seats = data.get('selected_seats') # 例如 ['A1', 'A2']
+        # 這裡應該要檢查位子是否還空著，MVP 先跳過
+        logging.info(f"User Selected Seats: {assigned_seats}")
+
     # 2. 建立訂單 (模擬寫入資料庫)
     order_id = f"ORD-{secrets.token_hex(4).upper()}"
     order = {
         "id": order_id,
         "customer": customer_id,
         "movie": data.get('movie'),
-        "seats": data.get('seats'),
+        "seats": assigned_seats,
         "time": datetime.datetime.now().isoformat()
     }
     bookings_db.append(order)
     
     return jsonify({
         "success": True, 
-        "order_id": order_id,
+        "order_id": order_id, # 模擬 ID
+        "seats": assigned_seats, # 回傳告訴使用者他買到哪
         "target": "success.html"
     })
 
