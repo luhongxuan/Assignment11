@@ -2,4 +2,5 @@ guest_checkout:
   value: false   # <--- 改這裡！ true = 開啟實驗(免登入); false = 關閉實驗(強制登入)
   name: Guest Checkout MVP
   description: Allow purchase without login (Hypothesis 1)
-  default: false
+  jira: DEVOPS-001          # <--- 補上：對應的工單號
+  creation_date: 2025-11-22
