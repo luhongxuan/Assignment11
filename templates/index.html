@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>訂票系統首頁</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        button { padding: 15px 30px; font-size: 18px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px;}
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>⚾️ 職棒冠軍賽訂票系統</h1>
+    <p>MVP 測試版本</p>
+    
+    <button id="buyBtn">立即購票</button>
+
+    <script>
+        const API_URL = "http://127.0.0.1:5000";
+
+        document.getElementById('buyBtn').addEventListener('click', async () => {
+            try {
+                // 呼叫後端 API 詢問路由
+                const res = await fetch(`${API_URL}/api/route-decision`, {
+                    method: 'GET',
+                    credentials: 'include' // 重要：讓瀏覽器帶上 Cookie/Session
+                });
+                const data = await res.json();
+                
+                console.log("後端指令:", data);
+                
+                // 根據後端回傳的 target 跳轉頁面
+                if (data.action === 'redirect') {
+                    // 為了 Demo 方便，我們把 token 帶在網址上 (實務上不用)
+                    window.location.href = `${data.target}?mode=${data.mode}`;
+                }
+            } catch (e) {
+                alert("無法連接後端，請確認 app.py 是否執行中");
+                console.error(e);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>會員登入</title>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 50px;">
+        <h1>請先登入</h1>
+        <p style="color: red;">此功能目前僅限會員使用 (Toggle OFF)</p>
+        
+        <input type="text" id="username" placeholder="使用者名稱">
+        <button onclick="doLogin()">登入</button>
+    </div>
+
+    <script>
+        async function doLogin() {
+            const username = document.getElementById('username').value;
+            const res = await fetch("http://127.0.0.1:5000/api/login", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username }),
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if(data.status === 'ok') window.location.href = data.target;
+        }
+    </script>
+</body>
+</html>
