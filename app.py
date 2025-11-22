@@ -29,17 +29,6 @@ except:
 
 app = Flask(__name__)
 app.secret_key = 'cinema-secure-key'
-
-# # --- 加入這段設定 ---
-# app.config.update(
-#     SESSION_COOKIE_HTTPONLY=True,
-#     # 如果你是用 http://127.0.0.1 測試，設為 'Lax'
-#     SESSION_COOKIE_SAMESITE='None', 
-#     SESSION_COOKIE_SECURE=True,
-#     # 注意：如果你未來上線用 HTTPS，這裡要改成 'None' 並且 SESSION_COOKIE_SECURE=True
-# )
-# # ------------------
-
 CORS(app, supports_credentials=True) # 允許跨域 Cookie
 
 # --- 資料庫模擬 (In-Memory) ---
