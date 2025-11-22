@@ -1,42 +1,35 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>訂票系統首頁</title>
+    <title>CINE-DEVOPS | 極致觀影體驗</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-        button { padding: 15px 30px; font-size: 18px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px;}
-        button:hover { background-color: #0056b3; }
+        body { background-color: #1a1a1a; color: white; font-family: 'Arial', sans-serif; text-align: center; padding-top: 50px; }
+        .hero { margin-bottom: 30px; }
+        .btn-main { background-color: #e50914; color: white; border: none; padding: 15px 40px; font-size: 24px; cursor: pointer; border-radius: 5px; transition: 0.3s; }
+        .btn-main:hover { background-color: #b20710; }
     </style>
 </head>
 <body>
-    <h1>⚾️ 職棒冠軍賽訂票系統</h1>
-    <p>MVP 測試版本</p>
+    <div class="hero">
+        <h1>🎬 CINE-DEVOPS 影城</h1>
+        <p>DevSecOps 期末專案展示 - 高併發訂票系統 MVP</p>
+    </div>
     
-    <button id="buyBtn">立即購票</button>
+    <button id="startBtn" class="btn-main">立即開始訂票</button>
 
     <script>
-        const API_URL = "http://127.0.0.1:5000";
-
-        document.getElementById('buyBtn').addEventListener('click', async () => {
+        document.getElementById('startBtn').addEventListener('click', async () => {
             try {
-                // 呼叫後端 API 詢問路由
-                const res = await fetch(`${API_URL}/api/route-decision`, {
-                    method: 'GET',
-                    credentials: 'include' // 重要：讓瀏覽器帶上 Cookie/Session
-                });
+                // 呼叫後端 API 判斷路由
+                const res = await fetch('http://127.0.0.1:5000/api/init-flow', { credentials: 'include' });
                 const data = await res.json();
                 
-                console.log("後端指令:", data);
-                
-                // 根據後端回傳的 target 跳轉頁面
-                if (data.action === 'redirect') {
-                    // 為了 Demo 方便，我們把 token 帶在網址上 (實務上不用)
-                    window.location.href = `${data.target}?mode=${data.mode}`;
+                if(data.action === 'redirect') {
+                    console.log("路由導向:", data.target);
+                    window.location.href = data.target;
                 }
             } catch (e) {
-                alert("無法連接後端，請確認 app.py 是否執行中");
-                console.error(e);
+                alert("系統維護中 (無法連接 API)");
             }
         });
     </script>

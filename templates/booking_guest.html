@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>快速訂票 (訪客)</title>
+    <style>
+        body { background-color: #222; color: #ddd; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #333; padding: 40px; border-radius: 10px; width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        /* 安全提示區塊 (UX Trust Signal) */
+        .secure-badge { background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; }
+        .secure-badge span { font-weight: bold; margin-left: 5px; }
+        
+        input, select { width: 100%; padding: 10px; margin: 10px 0; background: #444; border: 1px solid #555; color: white; border-radius: 4px; }
+        .btn { width: 100%; padding: 12px; background: #e50914; color: white; border: none; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="secure-badge">
+            🔒 <span>已啟用 256-bit SSL 加密 | 免登入快速結帳模式</span>
+        </div>
+
+        <h2>🎫 快速選位</h2>
+        <form id="bookForm">
+            <label>選擇電影</label>
+            <select id="movie">
+                <option value="devops-war">DevOps 世界大戰 (IMAX)</option>
+                <option value="matrix-reloaded">駭客任務：重啟</option>
+            </select>
+
+            <label>訂票 Email (接收電子票券)</label>
+            <input type="email" id="email" placeholder="example@email.com" required>
+
+            <label>座位數量</label>
+            <input type="number" id="seats" value="1" min="1" max="5">
+
+            <button type="submit" class="btn">確認付款 & 訂票</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('bookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                movie: document.getElementById('movie').value,
+                email: document.getElementById('email').value,
+                seats: document.getElementById('seats').value
+            };
+
+            const res = await fetch('http://127.0.0.1:5000/api/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 重要：帶上 Guest Session Token
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await res.json();
+            if (data.success) {
+                window.location.href = `${data.target}?order=${data.order_id}`;
+            } else {
+                alert("訂票失敗: " + data.error);
+            }
+        });
+    </script>
+</body>
+</html>

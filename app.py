@@ -1,81 +1,109 @@
 import logging
 import secrets
+import datetime
 from flask import Flask, session, jsonify, request
 from flask_cors import CORS
 from featuretoggles import TogglesList
 
-# --- 設定日誌 ---
-logging.basicConfig(level=logging.INFO)
-
-# --- 1. 初始化 Toggle (讀取 yaml) ---
-class TicketToggles(TogglesList):
+# --- Toggle 初始化 ---
+class CinemaToggles(TogglesList):
     guest_checkout: bool
 
 try:
-    toggles = TicketToggles('toggles.yaml')
-except Exception as e:
-    logging.warning(f"Toggle 載入失敗，使用預設值: {e}")
-    class MockToggle: guest_checkout = False
-    toggles = MockToggle()
+    toggles = CinemaToggles('toggles.yaml')
+except:
+    class Mock: guest_checkout = False
+    toggles = Mock()
 
 app = Flask(__name__)
-app.secret_key = 'devsecops-class-secret-key' # 用於加密 Session
+app.secret_key = 'cinema-secure-key'
+CORS(app, supports_credentials=True) # 允許跨域 Cookie
 
-# --- 2. 安全性配置 (CORS) ---
-# 允許跨域請求，這讓你的前端 HTML (file://) 可以呼叫這個 API
-CORS(app, supports_credentials=True)
+# --- 資料庫模擬 (In-Memory) ---
+bookings_db = []
 
-# --- 3. A&A 邏輯：產生訪客 Token ---
+# --- Helper Functions ---
 def generate_guest_token():
-    token = secrets.token_urlsafe(16)
-    session['guest_token'] = token
-    session['role'] = 'guest'
-    return token
+    return secrets.token_urlsafe(24) # 產生高強度隨機 Token
 
-# --- API 路由 ---
+# --- API Endpoints ---
 
-@app.route('/api/route-decision', methods=['GET'])
-def route_decision():
+@app.route('/api/init-flow', methods=['GET'])
+def init_flow():
     """
-    前端詢問：「我按下購買按鈕後要去哪？」
-    後端回答：根據 Toggle 狀態與登入狀態決定。
+    [核心路由] 當用戶點擊「開始訂票」時呼叫
+    由後端決定用戶該去哪裡 (Pattern: Server-Side Routing Logic)
     """
-    logging.info(f"收到請求，目前 Toggle 狀態: {toggles.guest_checkout}")
-
-    # 情況 A: 實驗開啟 (Toggle ON)
     if toggles.guest_checkout:
-        token = generate_guest_token() # 賦予臨時權限
+        # === 實驗組 (Toggle ON) ===
+        token = generate_guest_token()
+        session['guest_token'] = token
+        session['role'] = 'guest'
+        logging.info(f"Guest Flow Started. Token: {token[:8]}...")
+        
         return jsonify({
             "action": "redirect",
-            "target": "guest.html",
-            "mode": "guest_experiment",
-            "debug_token": token 
+            "target": "booking_guest.html",
+            "message": "進入快速訂票模式"
         })
-    
-    # 情況 B: 實驗關閉 (Toggle OFF) -> 走傳統流程
     else:
-        # 檢查是否已登入
+        # === 對照組 (Toggle OFF) ===
+        # 檢查是否已經登入
         if 'user_id' in session:
-            return jsonify({
-                "action": "redirect",
-                "target": "standard.html",
-                "mode": "standard_member"
-            })
+            return jsonify({"action": "redirect", "target": "booking_std.html"})
         else:
-            return jsonify({
-                "action": "redirect",
-                "target": "login.html",
-                "mode": "login_required"
-            })
+            return jsonify({"action": "redirect", "target": "login.html"})
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    # 模擬登入 API
     data = request.json
-    session['user_id'] = data.get('username', 'user')
-    session['role'] = 'member'
-    return jsonify({"status": "ok", "target": "standard.html"})
+    # 模擬登入驗證
+    if data.get('username') == 'admin' and data.get('password') == '1234':
+        session['user_id'] = 'admin'
+        session['role'] = 'member'
+        return jsonify({"success": True, "target": "booking_std.html"})
+    return jsonify({"success": False, "message": "帳號密碼錯誤"}), 401
+
+@app.route('/api/book', methods=['POST'])
+def book_ticket():
+    """
+    [核心交易] 處理訂票，同時支援 會員 與 訪客
+    """
+    data = request.json
+    role = session.get('role')
+    
+    # 1. 安全性檢查：根據身份驗證請求
+    if role == 'guest':
+        if 'guest_token' not in session:
+            return jsonify({"error": "Security Violation: Invalid Guest Session"}), 403
+        customer_id = f"GUEST-{data.get('email')}"
+        logging.info("Processing GUEST order")
+        
+    elif role == 'member':
+        if 'user_id' not in session:
+            return jsonify({"error": "Session Expired"}), 401
+        customer_id = f"MEMBER-{session.get('user_id')}"
+        logging.info("Processing MEMBER order")
+        
+    else:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # 2. 建立訂單 (模擬寫入資料庫)
+    order_id = f"ORD-{secrets.token_hex(4).upper()}"
+    order = {
+        "id": order_id,
+        "customer": customer_id,
+        "movie": data.get('movie'),
+        "seats": data.get('seats'),
+        "time": datetime.datetime.now().isoformat()
+    }
+    bookings_db.append(order)
+    
+    return jsonify({
+        "success": True, 
+        "order_id": order_id,
+        "target": "success.html"
+    })
 
 if __name__ == '__main__':
-    print("Backend Server Running on http://127.0.0.1:5000")
     app.run(debug=True, port=5000)

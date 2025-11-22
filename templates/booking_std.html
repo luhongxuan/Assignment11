@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>會員訂票</title>
+    <style>
+        body { background-color: #222; color: #ddd; font-family: sans-serif; display: flex; justify-content: center; height: 100vh; padding-top: 50px; }
+        .container { background: #333; padding: 40px; border-radius: 10px; width: 400px; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; }
+        .btn { width: 100%; padding: 12px; background: #4444ff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>👤 會員專屬訂票</h2>
+        <p>歡迎回來, Admin</p>
+        <hr style="border-color:#555">
+        
+        <form id="bookForm">
+            <label>會員電話</label>
+            <input type="text" value="0912-345-678" disabled>
+            
+            <label>累積點數折抵</label>
+            <input type="checkbox"> 使用 50 點折抵現金
+
+            <label>選擇電影</label>
+            <select id="movie">
+                <option value="devops-war">DevOps 世界大戰 (IMAX)</option>
+            </select>
+            
+            <button type="submit" class="btn">確認訂票</button>
+        </form>
+    </div>
+    
+    <script>
+        // (JavaScript 邏輯與 Guest 類似，但在 API 呼叫時後端會驗證 User ID 而非 Guest Token)
+        document.getElementById('bookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('http://127.0.0.1:5000/api/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ movie: 'devops-war', seats: 2 })
+            });
+            const data = await res.json();
+            if (data.success) window.location.href = `${data.target}?order=${data.order_id}`;
+        });
+    </script>
+</body>
+</html>
