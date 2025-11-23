@@ -4,6 +4,7 @@ colorama==0.4.6
 featuretoggles==1.0.2
 Flask==3.1.2
 flask-cors==6.0.1
+gunicorn==23.0.0
 iniconfig==2.3.0
 itsdangerous==2.2.0
 Jinja2==3.1.6

@@ -19,9 +19,10 @@
     </form>
 
     <script>
+        const API_BASE = 'https://ngrok.com/docs/errors/err_ngrok_4018'; 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const res = await fetch('http://127.0.0.1:5000/api/login', {
+            const res = await fetch(`${API_BASE}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

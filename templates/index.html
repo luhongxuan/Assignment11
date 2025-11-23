@@ -18,10 +18,11 @@
     <button id="startBtn" class="btn-main">立即開始訂票</button>
 
     <script>
+        const API_BASE = 'https://ngrok.com/docs/errors/err_ngrok_4018'; 
         document.getElementById('startBtn').addEventListener('click', async () => {
             try {
                 // 呼叫後端 API 判斷路由
-                const res = await fetch('http://127.0.0.1:5000/api/init-flow', { credentials: 'include' });
+                const res = await fetch(`${API_BASE}/api/init-flow`, { credentials: 'include' });
                 const data = await res.json();
                 
                 if(data.action === 'redirect') {
