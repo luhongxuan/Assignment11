@@ -29,6 +29,8 @@ jobs:
 
     # 4. 執行自動化測試 (這就是你問的重點！)
     - name: Run Automated Tests (Pytest)
+      env:
+        SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
       run: |
         # 執行測試，並顯示詳細輸出 (-v)
         pytest -v

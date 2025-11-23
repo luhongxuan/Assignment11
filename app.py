@@ -1,6 +1,7 @@
 import logging
 import secrets
 import datetime
+import os
 from flask import Flask, session, jsonify, request, render_template
 from flask_cors import CORS
 from featuretoggles import TogglesList
@@ -29,7 +30,7 @@ except:
     toggles = Mock()
 
 app = Flask(__name__)
-app.secret_key = 'cinema-secure-key'
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-for-local-only')
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
