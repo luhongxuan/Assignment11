@@ -1,7 +1,7 @@
 import logging
 import secrets
 import datetime
-from flask import Flask, session, jsonify, request
+from flask import Flask, session, jsonify, request, render_template
 from flask_cors import CORS
 from featuretoggles import TogglesList
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -43,6 +43,26 @@ app.config.update(
 # ---------------------
 
 CORS(app, supports_credentials=True) # 允許跨域 Cookie
+
+@app.route('/')
+def page_index():
+    return render_template('index.html')
+
+@app.route('/login.html')
+def page_login():
+    return render_template('login.html')
+
+@app.route('/booking_std.html')
+def page_booking_std():
+    return render_template('booking_std.html')
+
+@app.route('/booking_guest.html')
+def page_booking_guest():
+    return render_template('booking_guest.html')
+
+@app.route('/success.html')
+def page_success():
+    return render_template('success.html')
 
 # --- 資料庫模擬 (In-Memory) ---
 bookings_db = []
