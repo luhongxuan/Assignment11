@@ -6,7 +6,7 @@ guest_checkout:
   creation_date: 2025-11-22
 
 auto_seating:
-  value: false  # <--- 假設二：True=智慧配位(選偏好), False=手動選位(選地圖)
+  value: True  # <--- 假設二：True=智慧配位(選偏好), False=手動選位(選地圖)
   name: Smart Seat Allocation
   description: MVP - Auto-assign seats based on preferences to reduce friction. (Hypothesis 2)
   jira: DEVOPS-002
