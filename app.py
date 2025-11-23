@@ -4,6 +4,7 @@ import datetime
 from flask import Flask, session, jsonify, request
 from flask_cors import CORS
 from featuretoggles import TogglesList
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 SEAT_MAP = [
     {"id": "A1", "row": "A", "col": 1, "type": "front", "status": 0},
@@ -29,6 +30,8 @@ except:
 
 app = Flask(__name__)
 app.secret_key = 'cinema-secure-key'
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # --- 🟢 新增這段設定 ---
 app.config.update(
