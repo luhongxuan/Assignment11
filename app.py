@@ -29,6 +29,16 @@ except:
 
 app = Flask(__name__)
 app.secret_key = 'cinema-secure-key'
+
+# --- 🟢 新增這段設定 ---
+app.config.update(
+    # 允許 Cookie 在跨域環境下 (例如 file:// 對 localhost) 傳送
+    SESSION_COOKIE_SAMESITE='None',
+    # 現代瀏覽器強制：若要設為 None，必須同時啟用 Secure
+    SESSION_COOKIE_SECURE=True
+)
+# ---------------------
+
 CORS(app, supports_credentials=True) # 允許跨域 Cookie
 
 # --- 資料庫模擬 (In-Memory) ---
@@ -51,6 +61,7 @@ def init_flow():
         token = generate_guest_token()
         session['guest_token'] = token
         session['role'] = 'guest'
+        print(session)
         logging.info(f"Guest Flow Started. Token: {token[:8]}...")
         
         return jsonify({
@@ -147,7 +158,9 @@ def book_ticket():
     [核心交易] 處理訂票，同時支援 會員 與 訪客
     """
     data = request.json
+    print(session)
     role = session.get('role')
+    print(role)
     
     # 1. 安全性檢查：根據身份驗證請求
     if role == 'guest':
@@ -155,13 +168,11 @@ def book_ticket():
             return jsonify({"error": "Security Violation: Invalid Guest Session"}), 403
         customer_id = f"GUEST-{data.get('email')}"
         logging.info("Processing GUEST order")
-        
     elif role == 'member':
         if 'user_id' not in session:
             return jsonify({"error": "Session Expired"}), 401
         customer_id = f"MEMBER-{session.get('user_id')}"
         logging.info("Processing MEMBER order")
-        
     else:
         return jsonify({"error": "Unauthorized"}), 401
 

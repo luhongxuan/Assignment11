@@ -136,7 +136,7 @@
                     ? `系統已為您安排座位：${data.seats.join(', ')}`
                     : `您選擇的座位：${data.seats.join(', ')}`;
                 alert('訂票成功！\n' + msg);
-                window.location.href = 'success.html?order=' + data.order_id;
+                // window.location.href = 'success.html?order=' + data.order_id;
             } else {
                 alert('失敗：' + data.error);
             }
