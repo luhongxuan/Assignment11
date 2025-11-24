@@ -68,16 +68,12 @@ bookings_db = []
 
 # --- Helper Functions ---
 def generate_guest_token():
-    return secrets.token_urlsafe(24) # 產生高強度隨機 Token
+    return secrets.token_urlsafe(24)
 
 # --- API Endpoints ---
 
 @app.route('/api/init-flow', methods=['GET'])
 def init_flow():
-    """
-    [核心路由] 當用戶點擊「開始訂票」時呼叫
-    由後端決定用戶該去哪裡 (Pattern: Server-Side Routing Logic)
-    """
     if toggles.guest_checkout:
         token = generate_guest_token()
         session['guest_token'] = token
@@ -98,7 +94,6 @@ def init_flow():
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
-    # 模擬登入驗證
     if data.get('username') == 'admin' and data.get('password') == '1234':
         session['user_id'] = 'admin'
         session['role'] = 'member'
@@ -107,22 +102,17 @@ def login():
 
 @app.route('/api/seat-config', methods=['GET'])
 def get_seat_config():
-    """
-    前端載入頁面時呼叫此 API，詢問：「我該顯示地圖還是偏好選項？」
-    """
     mode = "auto" if toggles.auto_seating else "manual"
     
     response = {
         "mode": mode,
-        "seats": [],      # 手動模式才需要回傳地圖
-        "preferences": [] # 自動模式才需要回傳選項
+        "seats": [],
+        "preferences": []
     }
 
     if mode == "manual":
-        # 回傳目前所有座位狀態
         response["seats"] = SEAT_MAP
     else:
-        # 回傳可用的偏好選項
         response["preferences"] = [
             {"key": "center", "label": "👑 視野最佳 (中間區域)"},
             {"key": "aisle",  "label": "🏃 進出方便 (靠走道)"},
@@ -172,13 +162,9 @@ def allocate_seats(pref, count):
 
 @app.route('/api/book', methods=['POST'])
 def book_ticket():
-    """
-    [核心交易] 處理訂票，同時支援 會員 與 訪客
-    """
     data = request.json
     role = session.get('role')
     
-    # 1. 安全性檢查：根據身份驗證請求
     if role == 'guest':
         if 'guest_token' not in session:
             return jsonify({"error": "Security Violation: Invalid Guest Session"}), 403
@@ -195,7 +181,6 @@ def book_ticket():
     assigned_seats = []
     
     if toggles.auto_seating:
-        # 模式 A: 自動配位 (前端傳來的是 preference)
         pref = data.get('preference')
         count = data.get('count', 1)
         assigned_seats = allocate_seats(pref, count)
@@ -203,9 +188,7 @@ def book_ticket():
             return jsonify({"success": False, "error": "所選區域已無空位"}), 400
         logging.info(f"Auto-Allocated Seats: {assigned_seats}")
     else:
-        # 模式 B: 手動選位 (前端傳來的是 seat_ids)
-        assigned_seats = data.get('selected_seats') # 例如 ['A1', 'A2']
-        # 這裡應該要檢查位子是否還空著，MVP 先跳過
+        assigned_seats = data.get('selected_seats')
         logging.info(f"User Selected Seats: {assigned_seats}")
 
     # 2. 建立訂單 (模擬寫入資料庫)
