@@ -41,7 +41,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True
 )
 
-CORS(app, supports_credentials=True) # 允許跨域 Cookie
+CORS(app, supports_credentials=True)
 
 @app.route('/')
 def page_index():
