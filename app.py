@@ -26,7 +26,9 @@ class CinemaToggles(TogglesList):
 try:
     toggles = CinemaToggles('toggles.yaml')
 except:
-    class Mock: guest_checkout = False
+    class Mock: 
+        guest_checkout = False
+        auto_seating = False
     toggles = Mock()
 
 app = Flask(__name__)
@@ -34,14 +36,10 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-for-local-only')
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# --- 🟢 新增這段設定 ---
 app.config.update(
-    # 允許 Cookie 在跨域環境下 (例如 file:// 對 localhost) 傳送
     SESSION_COOKIE_SAMESITE='None',
-    # 現代瀏覽器強制：若要設為 None，必須同時啟用 Secure
     SESSION_COOKIE_SECURE=True
 )
-# ---------------------
 
 CORS(app, supports_credentials=True) # 允許跨域 Cookie
 
