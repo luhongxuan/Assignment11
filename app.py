@@ -81,11 +81,9 @@ def init_flow():
     由後端決定用戶該去哪裡 (Pattern: Server-Side Routing Logic)
     """
     if toggles.guest_checkout:
-        # === 實驗組 (Toggle ON) ===
         token = generate_guest_token()
         session['guest_token'] = token
         session['role'] = 'guest'
-        print(session)
         logging.info(f"Guest Flow Started. Token: {token[:8]}...")
         
         return jsonify({
@@ -94,8 +92,6 @@ def init_flow():
             "message": "進入快速訂票模式"
         })
     else:
-        # === 對照組 (Toggle OFF) ===
-        # 檢查是否已經登入
         if 'user_id' in session:
             return jsonify({"action": "redirect", "target": "booking_std.html"})
         else:
@@ -182,9 +178,7 @@ def book_ticket():
     [核心交易] 處理訂票，同時支援 會員 與 訪客
     """
     data = request.json
-    print(session)
     role = session.get('role')
-    print(role)
     
     # 1. 安全性檢查：根據身份驗證請求
     if role == 'guest':
