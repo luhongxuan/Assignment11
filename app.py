@@ -18,7 +18,6 @@ SEAT_MAP = [
     {"id": "B3", "row": "B", "col": 3, "type": "center", "status": 0},
 ]
 
-# --- Toggle 初始化 ---
 class CinemaToggles(TogglesList):
     guest_checkout: bool
     auto_seating: bool
