@@ -42,6 +42,11 @@ app.config.update(
 
 CORS(app, supports_credentials=True)
 
+if __name__ == '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+
 @app.route('/')
 def page_index():
     return render_template('index.html')
@@ -207,8 +212,3 @@ def book_ticket():
         "seats": assigned_seats, # 回傳告訴使用者他買到哪
         "target": "success.html"
     })
-
-if __name__ == '__main__':
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
