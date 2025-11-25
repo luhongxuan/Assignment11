@@ -195,6 +195,7 @@ def get_seat_config():
     # 進入座位頁的時間，用來計算停留時間
     now = datetime.datetime.now(datetime.timezone.utc)
     session["seat_page_enter_at"] = now.isoformat()
+    session["seat_mode"] = mode
 
     logging.info(
         "METRIC_SEAT_PAGE_ENTER role=%s mode=%s time=%s",
@@ -295,6 +296,7 @@ def book_ticket():
 
     # --- 計算座位頁停留時間（秒） ---
     seat_enter_str = session.pop("seat_page_enter_at", None)
+    seat_mode = session.pop("seat_mode", "unknown")
     seat_duration = None
     if seat_enter_str:
         try:
@@ -309,6 +311,7 @@ def book_ticket():
         logging.info(
             "METRIC_SEAT_PAGE_DURATION role=%s duration_s=%.3f",
             role,
+            seat_mode,
             seat_duration,
         )
 
