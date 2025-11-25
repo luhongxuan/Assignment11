@@ -309,7 +309,7 @@ def book_ticket():
     if seat_duration is not None:
         # logs-based metrics 會建議把單位放在名稱裡，如 duration_s【logging best practice】
         logging.info(
-            "METRIC_SEAT_PAGE_DURATION role=%s duration_s=%.3f",
+            "METRIC_SEAT_PAGE_DURATION role=%s mode=%s duration_s=%.3f",
             role,
             seat_mode,
             seat_duration,
