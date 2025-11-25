@@ -177,7 +177,6 @@ def get_seat_config():
             {"key": "front", "label": "🔥 臨場感強 (前排)"},
         ]
 
-    # 進入座位頁的時間，用來計算停留時間
     now = datetime.datetime.now(datetime.timezone.utc)
     session["seat_page_enter_at"] = now.isoformat()
     session["seat_mode"] = mode
@@ -243,7 +242,6 @@ def book_ticket():
 
     assigned_seats = []
 
-    # --- Auto seating 或 手動選位 ---
     if toggles.auto_seating:
         pref = data.get('preference')
         count = data.get('count', 1)
@@ -268,7 +266,6 @@ def book_ticket():
             "METRIC_MANUAL_SEATING_USED role=%s seats=%s", role, assigned_seats
         )
 
-    # --- 計算座位頁停留時間（秒） ---
     seat_enter_str = session.pop("seat_page_enter_at", None)
     seat_mode = session.pop("seat_mode", "unknown")
     seat_duration = None
@@ -281,7 +278,6 @@ def book_ticket():
             seat_duration = None
 
     if seat_duration is not None:
-        # logs-based metrics 會建議把單位放在名稱裡，如 duration_s【logging best practice】
         logging.info(
             "METRIC_SEAT_PAGE_DURATION role=%s mode=%s duration_s=%.3f",
             role,
@@ -289,7 +285,6 @@ def book_ticket():
             seat_duration,
         )
 
-    # --- 建立訂單 (模擬寫入資料庫) ---
     order_id = f"ORD-{secrets.token_hex(4).upper()}"
     order = {
         "id": order_id,
@@ -299,13 +294,6 @@ def book_ticket():
         "time": datetime.datetime.now().isoformat(),
     }
     bookings_db.append(order)
-    
-    return jsonify({
-        "success": True, 
-        "order_id": order_id,
-        "seats": assigned_seats,
-        "target": "success.html"
-    })
 
     logging.info(
         "METRIC_BOOKING_COMPLETED role=%s customer=%s order=%s seats=%s",
@@ -318,8 +306,8 @@ def book_ticket():
     return jsonify(
         {
             "success": True,
-            "order_id": order_id,  # 模擬 ID
-            "seats": assigned_seats,  # 回傳告訴使用者他買到哪
+            "order_id": order_id,
+            "seats": assigned_seats,
             "target": "success.html",
         }
     )
