@@ -193,7 +193,7 @@ def get_seat_config():
         ]
 
     # 進入座位頁的時間，用來計算停留時間
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
     session["seat_page_enter_at"] = now.isoformat()
 
     logging.info(
@@ -299,7 +299,8 @@ def book_ticket():
     if seat_enter_str:
         try:
             start = datetime.datetime.fromisoformat(seat_enter_str)
-            seat_duration = (datetime.datetime.utcnow() - start).total_seconds()
+            now_utc = datetime.datetime.now(datetime.timezone.utc)
+            seat_duration = (now_utc - start).total_seconds()
         except Exception:
             seat_duration = None
 
