@@ -53,9 +53,15 @@ if __name__ != "__main__":
     root_logger.setLevel(gunicorn_logger.level)
 
 
-# 第一次有 request 進來時，記錄一次啟動資訊與功能開關狀態
-@app.before_first_request
-def log_startup_info():
+startup_logged = False
+
+@app.before_request
+def log_startup_once():
+    global startup_logged
+    if startup_logged:
+        return
+
+    startup_logged = True
     logging.info(
         "STARTUP service=cinema_booking "
         "guest_checkout=%s auto_seating=%s",
