@@ -1,12 +1,12 @@
 guest_checkout:
-  value: false   # <--- 修改這裡來切換實驗模式 (True=免登入, False=強制登入)
+  value: true
   name: Guest Checkout MVF
   description: Enable friction-less booking flow for non-members. (Hypothesis 1)
   jira: DEVOPS-001
   creation_date: 2025-11-22
 
 auto_seating:
-  value: true   # <--- 假設二：True=智慧配位(選偏好), False=手動選位(選地圖)
+  value: false
   name: Smart Seat Allocation
   description: MVP - Auto-assign seats based on preferences to reduce friction. (Hypothesis 2)
   jira: DEVOPS-002
