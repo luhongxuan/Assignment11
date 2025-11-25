@@ -1,5 +1,5 @@
 guest_checkout:
-  value: True
+  value: False
   name: Guest Checkout MVF
   description: Enable friction-less booking flow for non-members. (Hypothesis 1)
   jira: DEVOPS-001
