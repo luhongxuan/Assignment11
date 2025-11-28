@@ -132,7 +132,6 @@ def init_flow():
             }
         )
     else:
-        # 未開啟 guest checkout，所有人都要登入
         logging.info(
             "FLOW_START type=member_only has_user_session=%s",
             "user_id" in session,
@@ -156,7 +155,6 @@ def login():
 
         return jsonify({"success": True, "target": "booking_std.html"})
 
-    # 登入失敗當成 security / auth 事件
     logging.warning("SECURITY_LOGIN_FAILED user=%s", username)
     return jsonify({"success": False, "message": "帳號密碼錯誤"}), 401
 
