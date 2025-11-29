@@ -40,7 +40,7 @@ os.environ["DEBUG_METRICS"] = "true"
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key-for-local-only")
 
-metrics = PrometheusMetrics(app, path='/prom_metrics')
+metrics = PrometheusMetrics(app)
 metrics.info('app_info', 'Cinema Booking App', version='1.0.3')
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
