@@ -37,7 +37,7 @@ except Exception:
 
 os.environ["DEBUG_METRICS"] = "true"
 
-app = Flask(__name__)
+app = Flask(__name__)   
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key-for-local-only")
 
 metrics = PrometheusMetrics(app)
