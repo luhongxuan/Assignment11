@@ -6,6 +6,7 @@ from flask import Flask, session, jsonify, request, render_template
 from flask_cors import CORS
 from featuretoggles import TogglesList
 from werkzeug.middleware.proxy_fix import ProxyFix
+from prometheus_flask_exporter import PrometheusMetrics
 
 SEAT_MAP = [
     {"id": "A1", "row": "A", "col": 1, "type": "front", "status": 0},
@@ -36,6 +37,9 @@ except Exception:
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key-for-local-only")
+
+metrics = PrometheusMetrics(app)
+metrics.info('app_info', 'Cinema Booking App', version='1.0.0')
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
