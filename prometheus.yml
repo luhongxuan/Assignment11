@@ -6,4 +6,4 @@ scrape_configs:
     metrics_path: '/metrics'
     scheme: 'https'  # 重要！Render 強制走 HTTPS
     static_configs:
-      - targets: [assignment11-48vq.onrender.com] # ⚠️ 注意：這裡不要加 https://，只要網域名稱
+      - targets: [assignment11-48vq.onrender.com]

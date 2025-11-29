@@ -2,11 +2,13 @@ import logging
 import secrets
 import datetime
 import os
+import psutil
 from flask import Flask, session, jsonify, request, render_template
 from flask_cors import CORS
 from featuretoggles import TogglesList
 from werkzeug.middleware.proxy_fix import ProxyFix
 from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Gauge
 
 SEAT_MAP = [
     {"id": "A1", "row": "A", "col": 1, "type": "front", "status": 0},
@@ -43,13 +45,15 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-key-for-local-only")
 metrics = PrometheusMetrics(app)
 metrics.info('app_info', 'Cinema Booking App', version='1.0.3')
 
+system_cpu_usage = Gauge('system_cpu_usage_percent', 'System CPU usage percent')
+system_memory_usage = Gauge('system_memory_usage_bytes', 'System memory usage in bytes')
+
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
 
 CORS(app, supports_credentials=True)
 
-# --- Logging 設定：讓 root logger / app.logger 都接到 gunicorn 的 handler ---
 if __name__ != "__main__":
     gunicorn_logger = logging.getLogger("gunicorn.error")
     app.logger.handlers = gunicorn_logger.handlers
@@ -58,6 +62,20 @@ if __name__ != "__main__":
     root_logger.handlers = gunicorn_logger.handlers
     root_logger.setLevel(gunicorn_logger.level)
 
+
+@app.before_request
+def gather_system_metrics():
+    # 每次有請求進來時，順便抓一下 CPU 和 Memory
+    try:
+        # 抓取 CPU 使用率 (non-blocking)
+        cpu = psutil.cpu_percent(interval=None)
+        system_cpu_usage.set(cpu)
+        
+        # 抓取記憶體使用量 (RSS)
+        memory = psutil.Process(os.getpid()).memory_info().rss
+        system_memory_usage.set(memory)
+    except Exception as e:
+        app.logger.error(f"Metrics error: {e}")
 
 startup_logged = False
 
