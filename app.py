@@ -226,16 +226,16 @@ def allocate_seats(pref, count):
     else:
         candidates = available
         
-    # if len(candidates) < count:
-    #     candidates = available
+    if len(candidates) < count:
+        candidates = available
 
-    # if len(candidates) < count:
-    #     return None
+    if len(candidates) < count:
+        return None
         
     selected = candidates[:count]
     ids = []
     for s in selected:
-        #s['status'] = 1
+        s['status'] = 1
         ids.append(s['id'])
         
     return ids
@@ -268,14 +268,14 @@ def book_ticket():
         pref = data.get('preference')
         count = data.get('count', 1)
         assigned_seats = allocate_seats(pref, count)
-        # if not assigned_seats:
-        #     logging.info(
-        #         "METRIC_BOOKING_FAILED reason=no_seat pref=%s count=%s", pref, count
-        #     )
-        #     return (
-        #         jsonify({"success": False, "error": "所選區域已無空位"}),
-        #         400,
-        #     )
+        if not assigned_seats:
+            logging.info(
+                "METRIC_BOOKING_FAILED reason=no_seat pref=%s count=%s", pref, count
+            )
+            return (
+                jsonify({"success": False, "error": "所選區域已無空位"}),
+                400,
+            )
         logging.info(
             "METRIC_AUTO_SEATING_USED role=%s pref=%s seats=%s",
             role,
